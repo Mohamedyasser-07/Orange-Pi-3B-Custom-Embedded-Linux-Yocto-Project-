@@ -72,10 +72,10 @@ sudo locale-gen en_US.UTF-8
 
 ## 3. Project layout
 
-Everything lives under `/work` in this guide (change the path if you prefer, but keep it consistent in the config files):
+Everything lives under `/yocto` in this guide (change the path if you prefer, but keep it consistent in the config files):
 
 ```
-/work
+/yocto
 ├── poky/                       # Yocto reference distro (meta, meta-poky, meta-yocto-bsp)
 ├── meta-openembedded/          # meta-oe, meta-python, meta-networking
 ├── meta-arm/                   # meta-arm, meta-arm-toolchain
@@ -96,8 +96,8 @@ Keeping `downloads/` and `sstate-cache/` **outside** the build directory means y
 Use the `scarthgap` branch for every layer.
 
 ```bash
-sudo mkdir -p /work && sudo chown $USER:$USER /work
-cd /work
+sudo mkdir -p /yocto && sudo chown $USER:$USER /yocto
+cd /yocto
 
 git clone -b scarthgap git://git.yoctoproject.org/poky
 git clone -b scarthgap https://github.com/openembedded/meta-openembedded.git
@@ -114,15 +114,15 @@ git clone <your-meta-orangepi3b-repo-url> meta-orangepi3b
 ## 5. Create the build environment
 
 ```bash
-cd /work
+cd /yocto
 source poky/oe-init-build-env build
 ```
 
-This creates `/work/build` with a `conf/` directory and drops you into it. **Run this command again in every new terminal** before using `bitbake`.
+This creates `/yocto/build` with a `conf/` directory and drops you into it. **Run this command again in every new terminal** before using `bitbake`.
 
 ## 6. Configure the layers (`bblayers.conf`)
 
-Edit `/work/build/conf/bblayers.conf`:
+Edit `/yocto/build/conf/bblayers.conf`:
 
 ```bitbake
 # POKY_BBLAYERS_CONF_VERSION is increased each time build/conf/bblayers.conf
@@ -133,17 +133,17 @@ BBPATH = "${TOPDIR}"
 BBFILES ?= ""
 
 BBLAYERS ?= " \
-  /work/poky/meta \
-  /work/poky/meta-poky \
-  /work/poky/meta-yocto-bsp \
+  /yocto/poky/meta \
+  /yocto/poky/meta-poky \
+  /yocto/poky/meta-yocto-bsp \
   "
-BBLAYERS += " /work/meta-openembedded/meta-oe "
-BBLAYERS += " /work/meta-openembedded/meta-python "
-BBLAYERS += " /work/meta-openembedded/meta-networking "
-BBLAYERS += " /work/meta-arm/meta-arm "
-BBLAYERS += " /work/meta-arm/meta-arm-toolchain "
-BBLAYERS += " /work/meta-rockchip "
-BBLAYERS += " /work/meta-orangepi3b "
+BBLAYERS += " /yocto/meta-openembedded/meta-oe "
+BBLAYERS += " /yocto/meta-openembedded/meta-python "
+BBLAYERS += " /yocto/meta-openembedded/meta-networking "
+BBLAYERS += " /yocto/meta-arm/meta-arm "
+BBLAYERS += " /yocto/meta-arm/meta-arm-toolchain "
+BBLAYERS += " /yocto/meta-rockchip "
+BBLAYERS += " /yocto/meta-orangepi3b "
 ```
 
 **Why each layer is here**
@@ -167,7 +167,7 @@ bitbake-layers show-layers
 This layer is where your own customizations live, so the upstream layers stay untouched and updatable. In this project the board support itself (machine, kernel, U-Boot) comes from `meta-rockchip`; `meta-orangepi3b` is the project layer, created with Yocto's helper and ready for your own recipes, `.bbappend` files and images:
 
 ```bash
-cd /work
+cd /yocto
 bitbake-layers create-layer meta-orangepi3b
 bitbake-layers add-layer meta-orangepi3b      # adds it to bblayers.conf
 ```
@@ -236,7 +236,7 @@ meta-orangepi3b/
 
 ## 7. Configure the build (`local.conf`)
 
-Below is the *essential* part of my `/work/build/conf/local.conf` (the long comment block that Yocto generates is unchanged and omitted here). Add these lines at the end of the file.
+Below is the *essential* part of my `/yocto/build/conf/local.conf` (the long comment block that Yocto generates is unchanged and omitted here). Add these lines at the end of the file.
 
 ```bitbake
 #### Target machine ####
@@ -244,8 +244,8 @@ MACHINE = "orangepi-3b"
 DISTRO ?= "poky"
 
 #### Shared locations (survive deleting build/tmp) ####
-DL_DIR     = "/work/downloads"
-SSTATE_DIR = "/work/sstate-cache"
+DL_DIR     = "/yocto/downloads"
+SSTATE_DIR = "/yocto/sstate-cache"
 
 #### Bootloader and kernel ####
 PREFERRED_VERSION_u-boot = "2024.01"
@@ -317,7 +317,7 @@ bitbake -e virtual/bootloader | grep -E "^(SRC_URI|UBOOT_MACHINE|PV)="
 Pick a target image. `core-image-minimal` is the smallest; `core-image-base` is a better starting point if you want networking tools and a bit more userland:
 
 ```bash
-cd /work
+cd /yocto
 source poky/oe-init-build-env build
 bitbake core-image-base
 ```
@@ -333,7 +333,7 @@ The first build downloads and compiles the full toolchain, kernel, U-Boot and al
 ### Where are the outputs?
 
 ```bash
-ls /work/build/tmp/deploy/images/orangepi-3b/
+ls /yocto/build/tmp/deploy/images/orangepi-3b/
 ```
 
 You should find (names vary with your image and layer config):
@@ -350,7 +350,7 @@ You should find (names vary with your image and layer config):
 
 ```bash
 lsblk                       # find your SD card, e.g. /dev/sdX (NOT your system disk!)
-cd /work/build/tmp/deploy/images/orangepi-3b/
+cd /yocto/build/tmp/deploy/images/orangepi-3b/
 ```
 
 **Option A: `bmaptool` (recommended: faster and verifies the write)**
@@ -506,7 +506,7 @@ The configuration in this guide is a **development image**. Before deploying on 
 - Yocto Project Documentation: <https://docs.yoctoproject.org/>
 - Yocto Project Quick Build
 - OpenEmbedded Layer Index: <https://layers.openembedded.org/>
-- `meta-rockchip`: <https://github.com/JeffyCN/meta-rockchip>
+- `meta-rockchip`: <https://git.yoctoproject.org/meta-rockchip>
 - Orange Pi 3B official resources (schematics, user manual): <http://www.orangepi.org/>
 - U-Boot documentation: <https://docs.u-boot.org/>
 
