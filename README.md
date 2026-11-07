@@ -1,6 +1,6 @@
 # Custom Embedded Linux for the Orange Pi 3B (Yocto Project)
 
-A step-by-step guide to building a custom Linux image for the **Orange Pi 3B** (Rockchip RK3566) using the **Yocto Project / OpenEmbedded**. It was developed as the final project of an Embedded Linux diploma, and is written so you can reproduce it and adapt it to your own needs.
+A step-by-step guide to building a custom Linux image for the **Orange Pi 3B** (Rockchip RK3566) using the **Yocto Project / OpenEmbedded**. It was developed as a part of the final project of an Embedded Linux diploma, and is written so you can reproduce it and adapt it to your own needs.
 
 **Result:** a bootable SD-card image with U-Boot, a custom kernel, an OpenSSH server, Wi-Fi and NetworkManager support, an on-board toolchain (gcc/g++, gdb, strace), a package manager, and basic editors.
 
